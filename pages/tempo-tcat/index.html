@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TCAT on Tempo — every early-wallet fill</title>
+<meta name="description" content="Full trade reconstruction of TCAT's first 29 wallets on Tempo: 198 fills with entry times, sizes and prices, rebuilt from RPC logs because no indexer covers the chain.">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCAT on Tempo — every early-wallet fill">
+<meta property="og:description" content="198 fills from the first 29 wallets, with prices. Rebuilt from raw RPC because no indexer covers Tempo.">
+<meta property="og:url" content="https://chain-teardowns.netlify.app/pages/tempo-tcat/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TCAT on Tempo — every early-wallet fill">
+<meta name="twitter:description" content="198 fills from the first 29 wallets, with prices. Rebuilt from raw RPC because no indexer covers Tempo.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/theme.css">
+</head>
+<body>
+<nav class="sitenav">
+  <a class="brand" href="/">Chain Teardowns</a>
+  <span class="sp"></span>
+  <a href="/">All analyses</a>
+</nav>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow"><span>Tempo mainnet</span><span>·</span><span>TCAT</span><span>·</span><span>deployed 06 Aug 2026, 18:37 UTC</span></div>
+  <h1>29 wallets. 198 fills.<br><em>Every price on the tape.</em></h1>
+  <p class="lede">Each row opens into that wallet's complete trade history: entry and exit times in minutes from deploy, size, stablecoin moved, and the market cap it filled at. Reconstructed from Transfer logs and per-transaction stablecoin deltas across both pathUSD and USDC.e, since the router settles exits in the second stable. Prices are realised fills, not marks.</p>
+  <div class="meta">
+    <div>Cohort spend<b>$5,184</b></div>
+    <div>Net PnL<b class="win">+$68,845</b></div>
+    <div>Fills logged<b>198</b></div>
+    <div>Mcap range<b>$4.1k → $480k</b></div>
+    <div>Mcap now<b>$71k</b></div>
+  </div>
+</header>
+
+<section class="tape">
+  <div class="tape-h">Every fill, log market-cap scale — first 240 minutes after deploy</div>
+  <div class="track" id="track"><div class="axis"></div></div>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--buy)"></i>buys</span>
+    <span><i class="sw" style="background:var(--win)"></i>sells</span>
+    <span class="dim">later fills past 240m are in the ledgers</span>
+  </div>
+</section>
+
+<div class="bar">
+  <button class="ctl" data-sort="pnl" aria-pressed="true">Net PnL</button>
+  <button class="ctl" data-sort="mult" aria-pressed="false">Multiple</button>
+  <button class="ctl" data-sort="entry" aria-pressed="false">Entry time</button>
+  <button class="ctl" data-sort="trades" aria-pressed="false">Fill count</button>
+  <button class="ctl" id="only" aria-pressed="false">Still holding</button>
+  <span class="count" id="count"></span>
+</div>
+
+<div class="head">
+  <div>#</div><div></div><div>Wallet</div><div class="num">Entry</div><div class="num">Spent</div>
+  <div class="num">Realized</div><div class="num">Held</div><div class="num">Unreal.</div>
+  <div class="num">×</div><div class="num">Net PnL</div>
+</div>
+<div id="rows"></div>
+
+<footer>
+  Token <code>0x288e4B9F1502CBe76E54Bbd19038519Bd0076718</code> · curve <code>0x49bE37F9F5e9664eED6b345aCf7Bd118487Dc87C</code> · router <code>0xD04bdF5F35D7B43c451a76f1b39c2A4Fa02670B3</code><br>
+  Market caps are on the 1,000,000,000 TCAT supply, so each equals the fill price per million multiplied by 1,000. Stables counted at $1: pathUSD <code>0x20c0…0000</code>, USDC.e <code>0x20c0…c60e8b50</code>, both 6 decimals. <b>curve</b> = filled against the bonding curve, <b>dex</b> = filled through the router.<br>
+  <b>Moves</b> are plain token transfers with no stablecoin leg, so no price exists for them. Wallets 07, 18, 27 and 29 exited this way, meaning the sale happened from an address you are not watching. 07 sent its entire bag to wallet 15, so treat that pair as one operator and read 15's numbers with that in mind.<br>
+  Built from Tempo JSON-RPC: <code>eth_getLogs</code> over blocks 33,543,333 to 33,633,835, <code>eth_getTransactionReceipt</code> for the stablecoin legs, <code>eth_call balanceOf</code> for live bags. Unrealised marks move with price; re-run for fresh ones. Cielo does not index Tempo, which is why none of this shows up there.
+</footer>
+
+</div>
+
+<script>
+/* summary: n, address, entry minute, spent, realized, held tokens, unrealized, flags */
+const W=[
+{n:1,a:"0x5c8fcd4dcb0e8f39425ddda55a431473c8ac85c4",entry:1.3,spent:98.98,real:3622.96,held:0,unreal:0},
+{n:2,a:"0x53b2aee59f75c4d9ac3d975eb2542f36cbc46f3f",entry:4.9,spent:88.88,real:5140.92,held:0,unreal:0},
+{n:3,a:"0x0bb3643abb6594c2c8e0eec8baec80bcc31f0d42",entry:9.6,spent:45.45,real:2627.40,held:0,unreal:0},
+{n:4,a:"0xf6129824799ef8eb234d32389d16e7b94e9b9280",entry:12.8,spent:34.34,real:1045.10,held:0,unreal:0},
+{n:5,a:"0xd91dc97b011932755296e09b6ba68e96688927c7",entry:15.8,spent:70.70,real:1709.69,held:0,unreal:0},
+{n:6,a:"0x4b0a214794713b3d8f63629ba6922ceb917394aa",entry:19.8,spent:98.98,real:2046.60,held:5000273,unreal:356.14},
+{n:7,a:"0x27757cee654c9fac370a25d2f39a401935a70c3a",entry:22.8,spent:198.97,real:0,held:0,unreal:0,unres:"bag → wallet 15"},
+{n:8,a:"0x0005672bb8f09655b820a111ce4dcdb7f2374064",entry:24.6,spent:262.50,real:9919.46,held:1810,unreal:0.13},
+{n:9,a:"0x534001c1a8a515aa3cc83b72bd6d272817ac03ef",entry:26.6,spent:202.00,real:4069.19,held:0,unreal:0},
+{n:10,a:"0xd38358e88dbe4fece96b26c7c74d1b5719950bb0",entry:27.4,spent:145.44,real:4456.13,held:0,unreal:0},
+{n:11,a:"0x220d040ea1cc9b7399d2f290eb9a7f5bfa88e79e",entry:27.9,spent:202.00,real:3103.54,held:11972250,unreal:852.72},
+{n:12,a:"0x8485a677e06ec85277245c5175918134328ed7ed",entry:29.4,spent:202.00,real:6550.26,held:0,unreal:0},
+{n:13,a:"0x45334a094492af9f478b79c3c4b9bf9fdef6d3d8",entry:30.0,spent:202.00,real:2040.89,held:0,unreal:0},
+{n:14,a:"0x1d6cbded4179dcdbceefa9598e42a48a5897cbe2",entry:30.3,spent:161.14,real:2915.50,held:1553284,unreal:110.63},
+{n:15,a:"0xe9138eefadca815dd94845cf6470221cd8b77d5d",entry:30.8,spent:147.46,real:3002.42,held:0,unreal:0,note:"+38.4M free from 07"},
+{n:16,a:"0xdedb6de94186adf5ec292625e66fbe9134235e99",entry:31.4,spent:252.50,real:2422.32,held:0,unreal:0},
+{n:17,a:"0xe0ab96e622b0e0fac828b444b307d4a89e7059e8",entry:31.9,spent:212.10,real:2624.31,held:10966284,unreal:781.07},
+{n:18,a:"0x52ea36ff4354ce0461ff878df2af5a02bb2b5baa",entry:35.3,spent:98.98,real:0,held:0,unreal:0,unres:"bag moved out"},
+{n:19,a:"0x69a7deb6a881867d9a7c71723160e7f1fc12f71e",entry:35.5,spent:40.40,real:660.52,held:0,unreal:0},
+{n:20,a:"0x161464f923282e1dccd85a9a37b0f7c9d36fa5e8",entry:36.1,spent:171.70,real:1747.65,held:3549775,unreal:252.83},
+{n:21,a:"0x1b4f03245543d6e2be4e2779d8c6be993df512e5",entry:36.6,spent:252.50,real:1063.51,held:10740215,unreal:764.96},
+{n:22,a:"0x9b3ba4887199076fda7b4b2e59c46aeef378d9d1",entry:36.8,spent:156.55,real:1309.01,held:4760000,unreal:339.03},
+{n:23,a:"0x169c4f390548ac0d3ed22b0c18e5c2a294b642a9",entry:38.1,spent:111.10,real:141.12,held:0,unreal:0},
+{n:24,a:"0xf4ba59f8d57880056a2ffe46c86fecf3d48fd22a",entry:39.3,spent:156.55,real:2358.39,held:0,unreal:0},
+{n:25,a:"0x9527b8a6ef65d03c949f1b052b127985caf55aaf",entry:40.2,spent:104.41,real:285.65,held:1165497,unreal:83.01},
+{n:26,a:"0xda22846fd3874537c3699e4202dfd3663eeeebf0",entry:41.5,spent:562.60,real:2966.63,held:0,unreal:0},
+{n:27,a:"0x3723003027a85f979bf2e2155db3e9751608bd7a",entry:41.7,spent:202.00,real:0,held:0,unreal:0,unres:"bag moved out"},
+{n:28,a:"0x73fcb2d05f2e29561b58177af7f22ac19b3b484f",entry:42.4,spent:227.25,real:2505.76,held:2161005,unreal:153.92},
+{n:29,a:"0x198695ada3c17e3c804c2ea5233a7e4f3fa41484",entry:43.3,spent:474.70,real:0,held:0,unreal:0,unres:"bag moved out"}
+];
+
+/* trades: [minutes from deploy, side, tokens, usd, price per 1M, counterparty]
+   side: bc/bd = buy on curve/dex, sc/sd = sell on curve/dex, i/o = transfer in/out */
+const TR={
+1:[[1.3,"bc",24268174,98.98,4.08],[55.2,"sc",4067044,227.48,55.93],[59.8,"sd",5050283,646.07,127.93],[60.9,"sd",7575424,850.20,112.23],[65,"sd",1515085,383.08,252.84],[69.3,"sd",6060339,1516.13,250.17]],
+2:[[4.9,"bc",20875006,88.88,4.26],[65,"sd",4175001,1119.98,268.26],[65.7,"sd",16700005,4020.94,240.77]],
+3:[[9.6,"bc",10356820,45.45,4.39],[70.2,"sd",5178410,1510.36,291.67],[71.8,"sd",5178410,1117.04,215.71]],
+4:[[12.8,"bc",7687778,34.34,4.47],[73.4,"sd",7687778,1045.10,135.94]],
+5:[[15.8,"bc",15467583,70.70,4.57],[75.4,"sd",7733792,833.55,107.78],[78.2,"sd",7733792,876.14,113.29]],
+6:[[19.8,"bc",20249248,95.95,4.74],[20.8,"bc",626025,3.03,4.84],[104.8,"sd",1000000,117.47,117.47],[105.7,"sd",1000000,126.81,126.81],[107.8,"sd",1000000,89.21,89.21],[108.1,"sd",1000000,88.30,88.30],[109,"sd",1000000,128.51,128.51],[110.8,"sd",1875000,234.33,124.98],[111.2,"sd",1000000,137.93,137.93],[111.4,"sd",1000000,146.77,146.77],[112.3,"sd",1000000,152.81,152.81],[113.4,"sd",1000000,143.66,143.66],[115,"sd",1000000,127.22,127.22],[115.8,"sd",1000000,124.91,124.91],[116.4,"sd",1000000,153.80,153.80],[117.2,"sd",1000000,138.95,138.95],[117.5,"sd",1000000,135.92,135.92]],
+7:[[22.8,"bc",10316547,50.50,4.90],[23,"bc",10100176,50.50,5.00],[23.3,"bc",9890542,50.50,5.11],[23.8,"bc",977775,5.05,5.17],[24.7,"bc",3517585,20.20,5.74],[26.9,"bc",3231777,20.20,6.25],[27.1,"bc",321840,2.02,6.28],[80.2,"o",8000000,0,null,"wallet 15"],[91.6,"o",30356243,0,null,"wallet 15"]],
+8:[[24.6,"bc",46431319,252.50,5.44],[65.5,"sd",13215659,4295.09,325.00],[65.9,"sd",10607830,2135.63,201.33],[66.4,"sd",5303915,1053.87,198.70],[66.8,"sd",2303915,489.86,212.62],[85.9,"bd",35155,10.00,284.45],[86.8,"sd",1499999,242.34,161.56],[87.2,"sd",1353515,184.76,136.50],[87.9,"sd",1218164,169.94,139.50],[122.5,"sd",1000000,187.63,187.63],[133.4,"sd",1124738,243.30,216.31],[141.8,"sd",1767748,272.42,154.11],[144.1,"sd",1414198,239.99,169.70],[164.3,"sd",1131359,93.19,82.37],[171.7,"sd",905087,63.67,70.35],[172,"sd",1810174,125.57,69.37],[197.1,"sd",1808364,122.20,67.57]],
+9:[[26.6,"bc",33713789,202.00,5.99],[55.2,"sc",8428447,451.39,53.56],[72.3,"sd",12642671,2158.20,170.71],[73.4,"sd",12642671,1459.60,115.45]],
+10:[[27.4,"bc",22552738,145.44,6.45],[67,"sd",11276369,2339.44,207.46],[67.2,"sd",11276369,2116.69,187.71]],
+11:[[27.9,"bc",29419165,202.00,6.87],[67.9,"sd",5709583,1463.71,256.36],[68.3,"sd",5709582,1294.33,226.69],[199.6,"sd",2350000,140.94,59.97],[201.2,"sd",1565000,92.10,58.85],[205.4,"sd",2112750,112.46,53.23]],
+12:[[29.4,"bc",27410688,202.00,7.37],[61.2,"sd",2741069,304.49,111.09],[62.9,"sd",6167405,1562.44,253.34],[63.5,"sd",2775332,1212.81,437.00],[64.1,"sd",3931721,1580.06,401.87],[70.2,"sd",2948790,780.95,264.84],[71.1,"sd",1769274,393.73,222.54],[78.3,"sd",7077097,715.78,101.14]],
+13:[[30,"bc",25601103,202.00,7.89],[73.3,"sd",256011,36.31,141.81],[123.3,"sd",2534509,493.14,194.57],[170.8,"sd",11405292,866.43,75.97],[173.2,"sd",11405292,645.01,56.55]],
+14:[[30.3,"bc",13373039,111.14,8.31],[62.7,"sd",1337304,422.47,315.91],[64.9,"sd",2407147,677.41,281.42],[65.1,"sd",4814294,1158.22,240.58],[66.9,"sd",1925718,442.14,229.60],[71.3,"sd",88576,18.22,205.71],[103.6,"sd",1800000,197.04,109.46],[232.7,"bd",553284,50.00,90.37]],
+15:[[30.8,"bc",8614647,73.73,8.56],[33.7,"bc",7305707,73.73,10.09],[68.2,"sd",796018,167.68,210.65],[68.3,"sd",756217,178.03,235.42],[69,"sd",718406,193.04,268.71],[69.5,"sd",682486,189.06,277.02],[80.2,"i",8000000,0,null,"wallet 07"],[91.6,"i",30356243,0,null,"wallet 07"],[98.4,"o",20000000,0,null,"0x3b5c4d…"],[100.2,"o",15000000,0,null,"0xefa3f9…"],[113.3,"sd",1000000,138.90,138.90],[118.9,"sd",2000000,285.63,142.82],[125.2,"sd",3000000,741.13,247.04],[429.1,"sd",10323471,1108.95,107.42]],
+16:[[31.4,"bc",28034374,252.50,9.01],[122.1,"sd",841031,158.16,188.05],[125.7,"sd",815800,174.46,213.85],[126,"sd",1318877,276.83,209.90],[133.7,"sd",1002347,227.67,227.14],[133.9,"sd",962253,192.35,199.89],[172.4,"sd",23094066,1392.85,60.31]],
+17:[[31.9,"bc",21932569,212.10,9.67],[69.1,"sd",10966284,2624.31,239.31]],
+18:[[35.3,"bc",9563648,98.98,10.35],[59.4,"o",9563648,0,null,"0xc183a7…"]],
+19:[[35.5,"bc",3825606,40.40,10.56],[80.1,"sd",1912803,314.47,164.40],[87,"sd",956401,222.08,232.20],[105.5,"sd",956401,123.97,129.62]],
+20:[[36.1,"bc",15776776,171.70,10.88],[57.9,"sd",1577678,120.82,76.58],[58.2,"sd",7099549,527.68,74.33],[62.8,"sd",3549775,1099.15,309.64]],
+21:[[36.6,"bc",17617958,202.00,11.47],[37,"bc",4079445,50.50,12.38],[69.5,"sd",216974,59.28,273.22],[157.5,"sd",10740215,1004.23,93.50]],
+22:[[36.8,"bc",13002245,156.55,12.04],[71.8,"sd",3002245,669.36,222.95],[145.9,"o",1000000,0,null,"0xb92fe9…"],[146.5,"sd",1800000,317.95,176.64],[147.5,"sd",1440000,193.78,134.57],[148.2,"sd",1000000,127.92,127.92]],
+23:[[38.1,"bc",8785788,111.10,12.65],[43.8,"sc",8785788,141.12,16.06]],
+24:[[39.3,"bc",11956822,156.55,13.09],[65.8,"sd",5978411,1259.83,210.73],[66.8,"sd",1494603,309.27,206.93],[68.3,"sd",1120952,268.81,239.81],[69.9,"sd",95841,25.59,266.98],[72.3,"sd",1633507,259.89,159.10],[73.3,"sd",1633507,235.00,143.86]],
+25:[[40.2,"bc",1508081,20.20,13.40],[44.2,"bc",529325,9.09,17.17],[45,"bc",609400,12.12,19.89],[79.3,"sd",661702,99.69,150.66],[81.3,"sd",496276,74.18,149.47],[88.7,"sd",372207,62.61,168.21],[148.6,"bd",110260,15.00,136.08],[210.8,"bd",209374,15.00,71.65],[212.9,"sd",718127,49.17,68.46],[225.6,"bd",96061,8.00,83.29],[845.9,"bd",351310,25.00,71.17]],
+26:[[41.5,"bc",5955509,80.80,13.57],[43.5,"bc",11143321,181.80,16.31],[63.4,"sd",512965,240.19,468.23],[71,"sd",4975759,1202.11,241.59],[73.7,"sd",11610105,1096.63,94.45],[74.8,"bd",2070400,200.00,96.60],[92.4,"sd",2070400,370.87,179.13],[119.6,"bd",550526,100.00,181.64],[159.6,"sd",550526,56.83,103.22]],
+27:[[41.7,"bc",14371094,202.00,14.06],[69.3,"o",14371094,0,null,"0x9fbcf5…"]],
+28:[[42.4,"bc",13674567,202.00,14.77],[43.1,"bc",1662861,25.25,15.19],[63.5,"sd",766871,368.48,480.49],[63.7,"sd",728528,255.26,350.37],[67.7,"sd",346051,75.05,216.88],[70.1,"sd",134960,41.21,305.37],[73.7,"sd",1336102,115.67,86.57],[74.7,"sd",601246,57.76,96.07],[76.3,"sd",571184,67.26,117.75],[78.2,"sd",542624,57.61,106.18],[79.1,"sd",515493,74.39,144.32],[86.7,"sd",958874,234.40,244.45],[87.3,"sd",767099,151.60,197.63],[88.7,"sd",200000,45.52,227.60],[91.7,"sd",786052,152.61,194.15],[92.3,"sd",707526,131.03,185.19],[93.5,"sd",1274964,200.61,157.35],[95.2,"sd",509476,87.15,171.07],[100,"sd",918076,134.18,146.16],[105.4,"sd",734461,96.31,131.14],[125.1,"sd",146892,36.77,250.31],[130.7,"sd",69774,14.17,203.12],[132.5,"sd",68029,15.33,225.36],[135.9,"sd",132657,23.40,176.40],[137,"sd",126024,23.76,188.52],[137.7,"sd",119723,23.48,196.14],[138.6,"sd",113737,22.75,200.01]],
+29:[[43.3,"bc",12949837,202.00,15.60],[44,"bc",16400037,272.70,16.63],[60.2,"o",29349873,0,null,"0x84caf8…"]]
+};
+
+W.forEach(w=>{
+  w.pnl=w.real+w.unreal-w.spent;
+  w.mult=w.unres?0:(w.real+w.unreal)/w.spent;
+  w.trades=TR[w.n].length;
+  const t=TR[w.n];
+  const buys=t.filter(r=>r[1][0]==="b"), sells=t.filter(r=>r[1][0]==="s");
+  w.avgBuy = buys.length ? buys.reduce((s,r)=>s+r[3],0)/(buys.reduce((s,r)=>s+r[2],0)/1e6) : null;
+  w.avgSell= sells.length? sells.reduce((s,r)=>s+r[3],0)/(sells.reduce((s,r)=>s+r[2],0)/1e6) : null;
+  w.best   = sells.length? Math.max(...sells.map(r=>r[4])) : null;
+});
+const TOP5=W.filter(w=>!w.unres).slice().sort((a,b)=>b.pnl-a.pnl).slice(0,5).map(w=>w.n);
+const MAXPX=Math.max(...Object.values(TR).flat().map(r=>r[4]||0));
+
+const CIELO=a=>`https://app.cielo.finance/profile/${a}/activity`;
+const SCAN =a=>`https://explore.tempo.xyz/address/${a}`;
+const usd=v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString("en-US",{maximumFractionDigits:0});
+/* 1B supply: market cap = price per 1M x 1000 */
+const MC=p=>p*1000;
+const mc=p=>{const v=MC(p);return v>=1000?"$"+(v/1000).toFixed(v>=100000?0:1)+"k":"$"+Math.round(v);};
+const usd2=v=>"$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const tok=v=>v>=1e6?(v/1e6).toFixed(2)+"M":v>=1e3?Math.round(v/1e3)+"K":Math.round(v);
+const mins=m=>m>=60?Math.floor(m/60)+"h"+String(Math.round(m%60)).padStart(2,"0"):m+"m";
+
+let sortKey="pnl", holdersOnly=false;
+const open=new Set();
+
+function renderTape(){
+  const t=document.getElementById("track");
+  t.querySelectorAll(".dot,.stamp,.ylab").forEach(e=>e.remove());
+  const lo=Math.log(4), hi=Math.log(500);
+  W.forEach(w=>TR[w.n].forEach(r=>{
+    if(!r[4]||r[0]>240) return;
+    const d=document.createElement("div");
+    d.className="dot "+r[1][0];
+    d.style.left=(r[0]/240*100)+"%";
+    d.style.top=(96-22-((Math.log(r[4])-lo)/(hi-lo))*62)+"px";
+    d.title=`#${w.n} · ${mins(r[0])} · ${r[1][0]==="b"?"buy":"sell"} ${tok(r[2])} @ ${mc(r[4])}`;
+    t.appendChild(d);
+  }));
+  [5,25,100,400].forEach(p=>{
+    const y=document.createElement("div"); y.className="ylab";
+    y.style.top=(96-22-((Math.log(p)-lo)/(hi-lo))*62)+"px"; y.textContent=mc(p);
+    t.appendChild(y);
+  });
+  [0,60,120,180,240].forEach(m=>{
+    const s=document.createElement("div"); s.className="stamp";
+    s.style.left=(m/240*100)+"%"; s.textContent=m+"m"; t.appendChild(s);
+  });
+}
+
+function ledger(w){
+  const t=TR[w.n];
+  const d=document.createElement("div"); d.className="drawer";
+  const sum=document.createElement("div"); sum.className="dsum";
+  sum.innerHTML=
+    `<span>avg buy<b>${w.avgBuy?mc(w.avgBuy):"—"}</b></span>`+
+    `<span>avg sell<b>${w.avgSell?mc(w.avgSell):"—"}</b></span>`+
+    `<span>best fill<b>${w.best?mc(w.best):"—"}</b></span>`+
+    `<span>fills<b>${t.length}</b></span>`+
+    `<span>held now<b>${w.held?tok(w.held):"none"}</b></span>`;
+  d.appendChild(sum);
+  const h=document.createElement("div"); h.className="lh";
+  h.innerHTML=`<div>Time</div><div>Side</div><div>Venue</div><div class="r">Tokens</div>
+    <div class="r">USD</div><div class="r">Mcap</div><div>vs entry</div>`;
+  d.appendChild(h);
+  const entryPx=t[0][4];
+  t.forEach(r=>{
+    const [m,k,tk,u,px,cp]=r;
+    const side=k[0]==="b"?"buy":k[0]==="s"?"sell":k==="i"?"in":"out";
+    const cls =k[0]==="b"?"b":k[0]==="s"?"s":"x";
+    const venue=k.length>1?(k[1]==="c"?"curve":"dex"):"—";
+    const rel = px&&entryPx ? (px/entryPx).toFixed(1)+"×" : "";
+    const barW = px ? Math.max(2,Math.round(px/MAXPX*90)) : 0;
+    const row=document.createElement("div"); row.className="lr";
+    row.innerHTML=`<div class="dim">${mins(m)}</div>
+      <div class="side ${cls}">${side}</div>
+      <div class="dim" style="font-size:11px">${venue}</div>
+      <div class="r">${tok(tk)}</div>
+      <div class="r">${u?usd2(u):"<span class='dim'>—</span>"}</div>
+      <div class="r">${px?mc(px):"<span class='dim'>—</span>"}</div>
+      <div class="note">${px?`<i class="spark ${cls}" style="width:${barW}px"></i>${rel}`:(cp?"transfer to/from "+cp:"")}</div>`;
+    d.appendChild(row);
+  });
+  return d;
+}
+
+function renderRows(){
+  const list=W.filter(w=>!holdersOnly||w.held>1000).slice()
+    .sort((x,y)=> sortKey==="entry" ? x.entry-y.entry : y[sortKey]-x[sortKey]);
+  const c=document.getElementById("rows"); c.innerHTML="";
+  list.forEach(w=>{
+    const r=document.createElement("div");
+    r.className="row"; r.id="w"+w.n;
+    r.setAttribute("role","button");
+    r.setAttribute("tabindex","0");
+    r.setAttribute("aria-expanded",String(open.has(w.n)));
+    const tag = w.unres?`<span class="tag unres">${w.unres}</span>`
+              : TOP5.includes(w.n)?`<span class="tag top">top earner</span>`
+              : w.note?`<span class="tag unres">${w.note}</span>`:"";
+    r.innerHTML=`
+      <div class="n">${String(w.n).padStart(2,"0")}</div>
+      <div class="caret">▶</div>
+      <div class="addr">${w.a}${tag}</div>
+      <div class="num dim" data-l="entry">${mins(w.entry)}</div>
+      <div class="num" data-l="spent">${usd(w.spent)}</div>
+      <div class="num" data-l="realized">${w.real?usd(w.real):"<span class='dim'>—</span>"}</div>
+      <div class="num dim" data-l="held">${w.held>1000?tok(w.held):"—"}</div>
+      <div class="num" data-l="unreal">${w.unreal>1?usd(w.unreal):"<span class='dim'>—</span>"}</div>
+      <div class="mult" data-l="multiple">${w.unres?"—":w.mult.toFixed(1)+"×"}</div>
+      <div class="pnl ${w.unres?"neg":""}" data-l="net pnl">${w.unres?"unresolved":"+"+usd(w.pnl)}</div>`;
+    const links=document.createElement("div"); links.className="links";
+    const mk=(label,href,cls)=>{const a=document.createElement("a");a.className="mini"+(cls?" "+cls:"");
+      a.href=href;a.target="_blank";a.rel="noopener";a.textContent=label;
+      a.onclick=e=>e.stopPropagation();return a;};
+    const copy=document.createElement("button");
+    copy.className="mini"; copy.type="button"; copy.textContent="Copy";
+    copy.onclick=e=>{e.stopPropagation();
+      navigator.clipboard.writeText(w.a).then(()=>{
+        copy.textContent="Copied";copy.classList.add("done");
+        setTimeout(()=>{copy.textContent="Copy";copy.classList.remove("done");},1400);
+      }).catch(()=>{copy.textContent="Press ⌘C";});};
+    links.append(mk("Cielo ↗",CIELO(w.a),"go"), mk("Tempo ↗",SCAN(w.a)), copy);
+    r.appendChild(links);
+    const toggle=e=>{
+      if(e.target.closest("a,button")) return;   // let links and Copy do their own thing
+      open.has(w.n)?open.delete(w.n):open.add(w.n);
+      renderRows();
+      const el=document.getElementById("w"+w.n); if(el)el.focus({preventScroll:true});
+    };
+    r.onclick=toggle;
+    r.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle(e);} };
+    c.appendChild(r);
+    if(open.has(w.n)) c.appendChild(ledger(w));
+  });
+  document.getElementById("count").textContent=list.length+" wallets · "+
+    list.reduce((s,w)=>s+w.trades,0)+" fills";
+}
+
+document.querySelectorAll(".ctl[data-sort]").forEach(b=>{
+  b.onclick=()=>{sortKey=b.dataset.sort;
+    document.querySelectorAll(".ctl[data-sort]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+    renderRows();};
+});
+const only=document.getElementById("only");
+only.onclick=()=>{holdersOnly=!holdersOnly;only.setAttribute("aria-pressed",String(holdersOnly));renderRows();};
+
+renderTape(); renderRows();
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chain Teardowns — on-chain trade reconstructions</title>
+<meta name="description" content="Raw on-chain trade reconstructions: wallet-by-wallet fills, entries, exits and prices, rebuilt from RPC logs rather than indexers.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Chain Teardowns">
+<meta property="og:description" content="Raw on-chain trade reconstructions, rebuilt from RPC logs rather than indexers.">
+<meta property="og:url" content="https://chain-teardowns.netlify.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Chain Teardowns">
+<meta name="twitter:description" content="Raw on-chain trade reconstructions, rebuilt from RPC logs rather than indexers.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/theme.css">
+</head>
+<body>
+<nav class="sitenav">
+  <a class="brand" href="/">Chain Teardowns</a>
+</nav>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow"><span>Independent research</span><span>·</span><span>on-chain</span></div>
+  <h1>Trade reconstructions,<br><em>from raw RPC logs.</em></h1>
+  <p class="lede">Wallet-by-wallet fills, entries, exits and prices rebuilt straight from <code>eth_getLogs</code> and transaction receipts — no indexer required, which is the point: most of what's tracked here isn't indexed anywhere else. Every page is a self-contained teardown of one token, one chain, one cohort of early wallets.</p>
+</header>
+
+<div id="grid" class="index-grid"></div>
+<div id="empty" class="empty" style="display:none">No teardowns published yet.</div>
+
+<footer>
+  Each page states its own data sources and methodology in its footer. Built and published with Claude Code.
+</footer>
+
+</div>
+
+<script>
+/* One entry per page in /pages/. Add new entries here when a new analysis goes live —
+   order doesn't matter, newest-first sorting happens below. */
+const PAGES=[
+  {
+    slug:"tempo-tcat",
+    title:"TCAT on Tempo",
+    tagline:"29 wallets. 198 fills. Every price on the tape.",
+    desc:"Full trade reconstruction of TCAT's first 29 wallets on Tempo: entry times, sizes and prices, rebuilt from RPC logs because no indexer covers the chain.",
+    chain:"Tempo mainnet",
+    ticker:"TCAT",
+    date:"2026-08-06",
+    stats:[["Wallets","29"],["Fills","198"],["Net PnL","+$68.8k"]]
+  }
+];
+
+const grid=document.getElementById("grid");
+if(!PAGES.length){
+  document.getElementById("empty").style.display="";
+}else{
+  PAGES.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(p=>{
+    const a=document.createElement("a");
+    a.className="pcard"; a.href="/pages/"+p.slug+"/";
+    a.innerHTML=`
+      <div class="peyebrow"><span>${p.chain}</span><span>·</span><span>${p.ticker}</span><span>·</span><span>${p.date}</span></div>
+      <h2>${p.title}</h2>
+      <p>${p.desc}</p>
+      <div class="pstats">${p.stats.map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join("")}</div>`;
+    grid.appendChild(a);
+  });
+}
+</script>
+</body>
+</html>
