@@ -73,8 +73,8 @@ beyond maybe a filename or a quick confirmation. Handle everything else.
    source file is otherwise untouched — never rewrite the analysis numbers or
    logic, only the presentation shell.
 
-7. **Generate its social card.** Run the OG image generator so links to this
-   page render properly when shared:
+7. **Generate its social card — this step is not optional.** Every published
+   page must have a working Open Graph + Twitter card, no exceptions. Run:
    ```
    node scripts/generate-og.mjs \
      --out "pages/<slug>/card.png" \
@@ -83,17 +83,31 @@ beyond maybe a filename or a quick confirmation. Handle everything else.
      --chain "<chain>" --ticker "<ticker>" --date "<display date>" \
      --stat "Label:Value" --stat "Label:Value" --stat "Label:Value"
    ```
-   Reuse the same 2-3 stats used for the homepage card. Then add to the new
-   page's `<head>`:
+   Reuse the same 2-3 stats used for the homepage card. Then add the full tag
+   set to the new page's `<head>` — all of these, not a subset (copy the block
+   from `pages/tempo-tcat/index.html` and swap the values):
    ```html
    <meta property="og:image" content="https://<site-domain>/pages/<slug>/card.png">
+   <meta property="og:image:width" content="1200">
+   <meta property="og:image:height" content="630">
+   <meta property="og:image:type" content="image/png">
+   <meta name="twitter:card" content="summary_large_image">
    <meta name="twitter:image" content="https://<site-domain>/pages/<slug>/card.png">
+   <meta name="twitter:image:alt" content="<one-sentence description of what's in the card>">
    ```
+   `og:image` and `twitter:image` must be byte-identical absolute URLs, and
+   `twitter:card` must be exactly `summary_large_image` — the validator in the
+   next step checks both.
    (If `node_modules`/Playwright aren't installed yet, run `npm install` then
    `npx playwright install chromium` once — this is a one-time local setup,
    never part of Netlify's build.)
 
-8. **Ship it.** Use the `deploy-site` skill to commit and push (including the
+8. **Validate before shipping.** Run `node scripts/check-og.mjs`. It must
+   print all-green and exit 0. If it reports a problem, fix it and re-run —
+   do not proceed to deploy with a failing check. This is the same gate the
+   `deploy-site` skill runs, so catching it here just saves a round trip.
+
+9. **Ship it.** Use the `deploy-site` skill to commit and push (including the
    new `card.png` — it's a normal tracked file, not gitignored). Netlify
    redeploys automatically on push — report back the live URL for the new page
    once pushed (`https://<site>/pages/<slug>/`).
