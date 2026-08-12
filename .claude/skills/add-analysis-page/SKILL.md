@@ -73,7 +73,28 @@ beyond maybe a filename or a quick confirmation. Handle everything else.
    source file is otherwise untouched — never rewrite the analysis numbers or
    logic, only the presentation shell.
 
-7. **Ship it.** Use the `deploy-site` skill to commit and push. Netlify
+7. **Generate its social card.** Run the OG image generator so links to this
+   page render properly when shared:
+   ```
+   node scripts/generate-og.mjs \
+     --out "pages/<slug>/card.png" \
+     --title "<short page title>" \
+     --tagline "<the one-line hook, same as the page's own tagline>" \
+     --chain "<chain>" --ticker "<ticker>" --date "<display date>" \
+     --stat "Label:Value" --stat "Label:Value" --stat "Label:Value"
+   ```
+   Reuse the same 2-3 stats used for the homepage card. Then add to the new
+   page's `<head>`:
+   ```html
+   <meta property="og:image" content="https://<site-domain>/pages/<slug>/card.png">
+   <meta name="twitter:image" content="https://<site-domain>/pages/<slug>/card.png">
+   ```
+   (If `node_modules`/Playwright aren't installed yet, run `npm install` then
+   `npx playwright install chromium` once — this is a one-time local setup,
+   never part of Netlify's build.)
+
+8. **Ship it.** Use the `deploy-site` skill to commit and push (including the
+   new `card.png` — it's a normal tracked file, not gitignored). Netlify
    redeploys automatically on push — report back the live URL for the new page
    once pushed (`https://<site>/pages/<slug>/`).
 

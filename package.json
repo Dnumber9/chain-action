@@ -1,0 +1,11 @@
+{
+  "name": "chain-action",
+  "private": true,
+  "description": "Static site — this package.json only exists for the local OG-image generator script, not for Netlify's build (which has no build command).",
+  "scripts": {
+    "og": "node scripts/generate-og.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}
