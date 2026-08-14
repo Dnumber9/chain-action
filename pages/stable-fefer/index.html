@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FEFER on Stable — earliest and most profitable wallets</title>
+<meta name="description" content="Curve cost basis for FEFER on Stable, reconstructed from the DYOR V2 launchpad contract's own bonding-curve parameters. Curve buyers paid $8.90, the pool paid up to $15,696 — every profitable wallet and every earliest curve buyer, ranked.">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="FEFER on Stable — earliest and most profitable wallets">
+<meta property="og:description" content="Curve buyers paid $8.90. The pool paid up to $15,696. Cost basis reconstructed from the launchpad contract's own bonding-curve parameters.">
+<meta property="og:url" content="https://chain-action.netlify.app/pages/stable-fefer/">
+<meta property="og:image" content="https://chain-action.netlify.app/pages/stable-fefer/card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FEFER on Stable — earliest and most profitable wallets">
+<meta name="twitter:description" content="Curve buyers paid $8.90. The pool paid up to $15,696. Cost basis reconstructed from the launchpad contract's own bonding-curve parameters.">
+<meta name="twitter:image" content="https://chain-action.netlify.app/pages/stable-fefer/card.png">
+<meta name="twitter:image:alt" content="FEFER on Stable: curve buyers paid $8.90, pool peak $15,696">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/theme.css">
+<style>
+  /* Page-specific: this page's two 8-column tables (no expand caret — rows
+     aren't interactive here, so also drop the shared row pointer cursor). */
+  .head,.row{grid-template-columns:30px minmax(0,1fr) 86px 78px 84px 76px 60px 96px}
+  .row{cursor:default}
+  /* This page's own accent: multiples shown in flag gold rather than dim gray. */
+  .mult{color:var(--flag);font-weight:600}
+</style>
+</head>
+<body>
+<nav class="sitenav">
+  <a class="brand" href="/">Chain Teardowns</a>
+  <span class="sp"></span>
+  <a href="/">All analyses</a>
+</nav>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow"><span>Stable · chain 988</span><span>·</span><span>FEFER</span><span>·</span><span>DYOR V2 launchpad</span></div>
+  <h1>Curve buyers paid $8.90.<br><em>The pool paid up to $15,696.</em></h1>
+  <p class="lede">Curve cost basis reconstructed from the DYOR launchpad contract's own parameters: 793.1M tokens on the curve, 7,058.82 virtual quote reserve, 20,000 raise target. Summing every identified curve holder's implied allocation through that constant-product reproduces a $19,999 raise against the contract's 20,000 target, which is what validates the model. Every price below is USD per 1,000,000 FEFER. Post-bond fills are priced from pool reserves at the exact block of each trade. No size filter applied.</p>
+  <div class="meta">
+    <div>Curve entry<b>$8.90 → $131</b></div>
+    <div>Peak<b class="win">$15,696</b></div>
+    <div>Peak vs first curve buy<b class="win">1,763×</b></div>
+    <div>Curve wallets<b>2,073</b></div>
+    <div>Price now<b>$2,417</b></div>
+  </div>
+</header>
+
+<section class="arc">
+  <div class="arc-h">Price arc, USD per 1M FEFER</div>
+  <div class="arcline">
+    <span>curve open<b>$8.90</b></span><span class="sep">→</span>
+    <span>curve graduation<b>$131</b></span><span class="sep">→</span>
+    <span>earliest pool print<b>$10,048</b></span><span class="sep">→</span>
+    <span class="up">peak<b>$15,696</b></span><span class="sep">→</span>
+    <span class="dn">low<b>$1,489</b></span><span class="sep">→</span>
+    <span>now<b>$2,417</b></span>
+  </div>
+</section>
+
+<h2>Most profitable wallets</h2>
+<p class="sub">Ranked by realized proceeds plus current bag, minus curve cost and any post-bond buying. Contracts, routers and aggregators excluded. Cost column includes both the modelled curve entry and every dollar spent buying from the pool afterwards.</p>
+<div class="head">
+  <div>#</div><div>Wallet</div><div class="num">Curve tokens</div><div class="num">Cost</div>
+  <div class="num">Sold</div><div class="num">Still holds</div><div class="num">×</div><div class="num">Net PnL</div>
+</div>
+<div id="profitRows"></div>
+
+<h2>Earliest curve wallets</h2>
+<p class="sub">Ordered by first appearance at the pool, which is the best available proxy for curve position since pre-bond logs are trimmed at this endpoint. These are the wallets nearest the $8.90 open. Note how many of them took tiny positions and made almost nothing: being first was not the same as sizing it.</p>
+<div class="head">
+  <div>#</div><div>Wallet</div><div class="num">Curve tokens</div><div class="num">Entry $/1M</div>
+  <div class="num">Cost</div><div class="num">Sold</div><div class="num">Sells</div><div class="num">Net PnL</div>
+</div>
+<div id="earlyRows"></div>
+
+<footer>
+  Token <code>0xEaf7AC0fDf150CDD89340fb762d83848DE6a7b83</code> · pool <code>0x3dEa4bE5615974F31624404ef288Ba3B36DfEB83</code> · launchpad <code>0x17E1F4b01f…e758eb</code> · creator <code>0x54fdb38a…80fb69</code><br>
+  <b>Curve parameters read from the launchpad contract:</b> supply 1,000,000,000 · curve allocation 793,100,000 · migration allocation 206,900,000 · creator allocation 73,000,000 · virtual quote reserve 7,058.8235 · raise target 20,000 · reserve at graduation 27,058.8235.<br>
+  <b>Two honest limits.</b> First, this node trims logs below block 32,790,343, so no pre-bond fill is directly observable; curve cost is modelled from the bonding curve, and each wallet's position on that curve is inferred from the order it first appears at the pool. A wallet that bought early on the curve but only touched the pool later will show a cost that is too high, making its multiple a floor. Second, identified EOA curve holders account for roughly $10.9k of the $20k raise; the remainder passed through router and aggregator contracts and cannot be attributed to an end wallet.<br>
+  Post-bond figures are exact: 80,966 pool buys and 43,016 pool sells priced against 127,122 Sync reserve snapshots, blocks 32,790,343 to 34,649,500. Unrealised marked at $2,417 per 1M. Cielo does not index Stable, so its profiles show these wallets on other chains, which is the cross-chain identity check worth running before you follow any of them.
+</footer>
+
+</div>
+
+<script>
+/* [addr, curveTokens, cost, sold, heldTokens, netTotal, multiple, poolBuys, poolSells, firstBlock] */
+const PROFIT=[
+["0xcb9b8e938c30968af0406094597bf6cabad7a1c1",6430088,90,72349,0,72259,806,0,2,32832919,["top earner","two sells, done"]],
+["0x5b0051e4ea8eaf6ec523ab2aa76fe0149e68b040",9000099,96,59835,0,59739,621,0,8,32808268,["top earner"]],
+["0x396a942071413f6f8352fa9b5fe6d92564554b0e",16939358,533,52355,284736,52511,100,0,275,33233115,["largest curve bag","275 sells"]],
+["0x148c67ace132281d83a7bc72eaffb884cecf2f56",3500000,35,37868,5000000,49918,1421,0,7,32805698,["best multiple","still holds 5M"]],
+["0xe43aeac325d96a943479ae86e16c09a5df659ab3",8413914,86,45108,0,45022,522,0,11,32806539,[]],
+["0xf86a7c853b60c36f79f6e1de0e7868d109e97004",3309684,70,26776,7500000,44833,641,0,7,32928844,["holds 7.5M"]],
+["0xcfdd0fb5f47d524759b2e327b18163d0c4af6a9e",6939315,204,40504,0,40300,198,0,5,33224350,[]],
+["0x3d3ecccca9c6b59d3eb43b4494f7d89b697ee97d",2853226,28,35290,1449004,38764,1401,0,21,32804894,["best multiple","very early"]],
+["0x56abd14ca029d27bcc0af0fea428170f82fd89b2",8190097,4374,41185,0,36811,9,0,0,32000000,["bought the pool too"]],
+["0x5842e058374c82f140bfd46f622b30e28011fc4f",5953389,108,32697,0,32589,303,0,26,32883339,[]],
+["0x16a4c01e6aa34fec39f9dbe9c1b80d40bbfe9f7a",2596427,34,29214,0,29180,857,0,1,32830513,["one sell, whole bag"]],
+["0x2fca70f212b154174c30286cb5e8d416bd7128db",6404544,34938,63955,0,29016,2,12,32,32804083,["traded it actively"]],
+["0xb143a07fcfffb46db4113dc7c78748353e67421f",2379387,32,26772,0,26740,843,0,5,32830806,[]],
+["0x58c1e8814813c7085f129d87f0e25b96572b0625",2337582,26,26358,0,26332,1010,0,6,32810921,[]],
+["0x0fa3a520273545effec692de886683609fd0cf01",4113946,110,25430,0,25320,231,0,18,33156268,[]]
+];
+
+/* [addr, curveTokens, entryPx, cost, sold, sells, net] */
+const EARLY=[
+["0x0ee0fba72492db59ff2d1c10439da2a8bc4d2244",495,8.90,0.00,2,1,-2],
+["0x01f67a96934d9f420001a6a14797e411b62386ee",36344,8.90,0.32,404,1,667],
+["0x723aadf9329a770c8a77f205eaacc879b6e83f55",2624,8.90,0.02,268,2,215],
+["0x92678267a2b22643d2fb4b39d7e0d27a24a2f288",30035,8.90,0.27,809,9,338],
+["0xc0f0a2d49db78efc4a3c70d5b4450cff2d390315",2728,8.90,0.02,30,1,30],
+["0x7bfd4316370c0bcd99fbea86bd0123ab36dba300",92219,8.90,0.82,1143,3,1143],
+["0x4f8b606773afbf461bcd7247ed68c011d4c71e36",49951,8.90,0.44,3660,5,-720],
+["0xe3861f980fca04b9b70a9f11f44e0d281dd2ece6",21356,8.91,0.19,301,2,179],
+["0x64e68631d893062d7ffe802ea3a68ded75bee4f0",950000,8.92,8.47,11830,17,10189],
+["0x4072b1893b5a43847bc36acd4d4bf38333d94dec",16907,8.93,0.15,68,1,-34],
+["0xe639c494693238930256d4f1c8e082acaabdca85",6050,8.93,0.05,107,1,97],
+["0x5352678f7a323a063e0e92a8c94fb8b7f7329349",54908,8.93,0.49,1857,3,-1286],
+["0x00f0df30ff796dc5ebd37f468fc6a7d731625a5d",40265,8.93,0.36,10258,40,560],
+["0x650f6e0e9dd0f8070d58176c7ae34a84f433ff32",1490,8.93,0.01,72,4,8],
+["0xbd83fa9d30aa455b6e279e20cea8b067a902366e",2204,8.93,0.02,490,6,62]
+];
+
+const CIELO=a=>`https://app.cielo.finance/profile/${a}/activity`;
+const SCAN =a=>`https://stablescan.xyz/address/${a}`;
+const usd=v=>(v<0?"-$":"$")+Math.abs(v).toLocaleString("en-US",{maximumFractionDigits:0});
+const usd2=v=>"$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const tok=v=>v>=1e6?(v/1e6).toFixed(2)+"M":v>=1e3?Math.round(v/1e3)+"K":Math.round(v);
+
+function mkLinks(a){
+  const links=document.createElement("div"); links.className="links";
+  const mk=(label,href,cls)=>{const el=document.createElement("a");el.className="mini"+(cls?" "+cls:"");
+    el.href=href;el.target="_blank";el.rel="noopener";el.textContent=label;return el;};
+  const copy=document.createElement("button");
+  copy.className="mini"; copy.type="button"; copy.textContent="Copy";
+  copy.onclick=()=>{navigator.clipboard.writeText(a).then(()=>{
+      copy.textContent="Copied";copy.classList.add("done");
+      setTimeout(()=>{copy.textContent="Copy";copy.classList.remove("done");},1400);
+    }).catch(()=>{copy.textContent="Press ⌘C";});};
+  links.append(mk("Cielo ↗",CIELO(a),"go"), mk("Scan ↗",SCAN(a)), copy);
+  return links;
+}
+
+const pc=document.getElementById("profitRows");
+PROFIT.forEach((p,i)=>{
+  const [a,cur,cost,sold,held,net,mult,nb,ns,blk,tags]=p;
+  const r=document.createElement("div"); r.className="row";
+  const tg=(tags||[]).map(t=>{
+    const cls=t.indexOf("top")===0||t.indexOf("best")===0?"top":t.indexOf("bought")===0?"warn":"mut";
+    return `<span class="tag ${cls}">${t}</span>`;}).join("");
+  r.innerHTML=`<div class="n">${String(i+1).padStart(2,"0")}</div>
+    <div class="addr">${a}${tg}</div>
+    <div class="num dim" data-l="curve tokens">${tok(cur)}</div>
+    <div class="num" data-l="cost">${usd(cost)}</div>
+    <div class="num" data-l="sold">${usd(sold)}</div>
+    <div class="num dim" data-l="still holds">${held?tok(held):"—"}</div>
+    <div class="mult" data-l="multiple">${mult}×</div>
+    <div class="pnl" data-l="net pnl">+${usd(net)}</div>`;
+  r.appendChild(mkLinks(a)); pc.appendChild(r);
+});
+
+const ec=document.getElementById("earlyRows");
+EARLY.forEach((p,i)=>{
+  const [a,cur,px,cost,sold,ns,net]=p;
+  const r=document.createElement("div"); r.className="row";
+  r.innerHTML=`<div class="n">${String(i+1).padStart(2,"0")}</div>
+    <div class="addr">${a}${i===0?'<span class="tag top">first in</span>':''}${cur>=900000?'<span class="tag top">sized it</span>':''}</div>
+    <div class="num dim" data-l="curve tokens">${tok(cur)}</div>
+    <div class="num" data-l="entry $/1M">$${px.toFixed(2)}</div>
+    <div class="num dim" data-l="cost">${usd2(cost)}</div>
+    <div class="num" data-l="sold">${usd(sold)}</div>
+    <div class="num dim" data-l="sells">${ns}</div>
+    <div class="pnl ${net<0?"loss":""}" data-l="net pnl">${(net>=0?"+":"")+usd(net)}</div>`;
+  r.appendChild(mkLinks(a)); ec.appendChild(r);
+});
+</script>
+</body>
+</html>

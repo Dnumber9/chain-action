@@ -3,7 +3,7 @@
 
 :root{
   --paper:#E6E9E3;--paper-2:#DFE3DC;--paper-3:#D6DBD2;--ink:#14171C;--ink-soft:#5A6169;
-  --rule:#C4CABF;--win:#1F5D50;--buy:#8C3B10;--idle:#7A858E;--flag:#D8A61B;
+  --rule:#C4CABF;--win:#1F5D50;--buy:#8C3B10;--idle:#7A858E;--flag:#D8A61B;--loss:#8C2F26;
   --grid:rgba(20,23,28,.055);
 }
 *{box-sizing:border-box}
@@ -38,6 +38,21 @@ h1 em{font-style:normal;color:var(--win)}
 .meta b{display:block;font-size:19px;color:var(--ink);text-transform:none;margin-top:4px;letter-spacing:-.01em}
 .meta b.win{color:var(--win)}
 
+/* in-page section headers, e.g. "Most profitable wallets" */
+h2{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:22px;
+   letter-spacing:-.02em;margin:38px 0 4px}
+.sub{font-size:12px;color:var(--ink-soft);margin:0 0 14px;max-width:74ch;line-height:1.6}
+
+/* price arc: a compact left-to-right summary of a token's price journey */
+.arc{margin:28px 0 6px;border:1px solid var(--rule);background:var(--paper-2);padding:16px 18px 12px}
+.arc-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:12px}
+.arcline{display:flex;align-items:baseline;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.arcline span{padding:6px 16px 6px 0;font-size:11px;color:var(--ink-soft);letter-spacing:.04em;text-transform:uppercase}
+.arcline b{display:block;font-size:17px;color:var(--ink);margin-top:3px;text-transform:none;letter-spacing:-.01em}
+.arcline .sep{color:var(--rule);padding:0 12px 0 0;font-size:16px}
+.arcline .up b{color:var(--win)}
+.arcline .dn b{color:var(--loss)}
+
 /* price ladder */
 .tape{margin:30px 0 6px;border:1px solid var(--rule);background:var(--paper-2);padding:16px 18px 10px}
 .tape-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:14px}
@@ -58,7 +73,13 @@ button.ctl:hover{border-color:var(--ink);color:var(--ink)}
 button.ctl[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 .bar .count{margin-left:auto;font-size:11px;color:var(--ink-soft);letter-spacing:.08em;text-transform:uppercase}
 
-.head,.row{display:grid;grid-template-columns:30px 16px minmax(0,1fr) 50px 70px 78px 70px 88px 50px 104px;gap:11px;align-items:center}
+/* .head,.row set the shared row chrome (padding, borders, hover, mobile
+   collapse) but NOT desktop grid-template-columns — every page has a
+   different number/width of columns, so each page must declare its own
+   `.head,.row{grid-template-columns:...}` in a small page-scoped <style>
+   block. See pages/tempo-tcat/index.html or pages/stable-fefer/index.html
+   for examples. */
+.head,.row{display:grid;gap:11px;align-items:center}
 .head{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);padding:0 10px 8px;border-bottom:1px solid var(--ink)}
 .row{padding:11px 10px;border:0;border-bottom:1px solid var(--rule);background:transparent;
      width:100%;text-align:left;font-family:inherit;font-size:14px;color:inherit;cursor:pointer;transition:background .12s}
@@ -72,10 +93,12 @@ button.ctl[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);co
 .tag{display:inline-block;font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:1px 5px;
      margin-left:8px;vertical-align:2px;border:1px solid currentColor;white-space:nowrap}
 .tag.top{color:var(--flag)}
-.tag.unres{color:var(--idle)}
+.tag.unres,.tag.mut{color:var(--idle)}
+.tag.warn{color:var(--loss)}
 .num{text-align:right;font-variant-numeric:tabular-nums}
 .pnl{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--win)}
-.pnl.neg{color:var(--idle);font-weight:400}
+.pnl.neg{color:var(--idle);font-weight:400} /* unresolved / no data, not a real loss */
+.pnl.loss{color:var(--loss);font-weight:600} /* an actual negative dollar amount */
 .mult{text-align:right;font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
 .dim{color:var(--ink-soft)}
 
@@ -126,7 +149,10 @@ footer b{color:var(--ink);font-weight:600}
 
 @media (max-width:1000px){
   .head{display:none}
-  .row{grid-template-columns:24px 14px 1fr;row-gap:7px;padding:14px 8px}
+  /* .wrap-prefixed (not just .row) so this reliably beats any page-scoped
+     desktop grid-template-columns override, regardless of source order —
+     those page overrides live in a <style> block loaded after this file. */
+  .wrap .row{grid-template-columns:24px 14px 1fr;row-gap:7px;padding:14px 8px}
   .row>*{grid-column:3}
   .row .n{grid-column:1;grid-row:1}
   .row .caret{grid-column:2;grid-row:1}

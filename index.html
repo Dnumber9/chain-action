@@ -47,8 +47,11 @@
 </div>
 
 <script>
-/* One entry per page in /pages/. Add new entries here when a new analysis goes live —
-   order doesn't matter, newest-first sorting happens below. */
+/* One entry per page in /pages/. Add new entries here when a new analysis goes live.
+   `date` is the text shown on the card — use the real deploy date if the page states
+   one, otherwise a short honest label (don't invent a date the source doesn't give).
+   `sortDate` (ISO, ideally the deploy date) controls newest-first ordering — falls
+   back to `date` when that's already a real date, otherwise set it explicitly. */
 const PAGES=[
   {
     slug:"tempo-tcat",
@@ -58,7 +61,19 @@ const PAGES=[
     chain:"Tempo mainnet",
     ticker:"TCAT",
     date:"2026-08-06",
+    sortDate:"2026-08-06",
     stats:[["Wallets","29"],["Fills","198"],["Net PnL","+$68.8k"]]
+  },
+  {
+    slug:"stable-fefer",
+    title:"FEFER on Stable",
+    tagline:"Curve buyers paid $8.90. The pool paid up to $15,696.",
+    desc:"Curve cost basis for FEFER reconstructed from the DYOR V2 launchpad contract's own bonding-curve parameters, cross-checked against a $19,999 modelled raise. Every profitable wallet and every earliest curve buyer, ranked.",
+    chain:"Stable · chain 988",
+    ticker:"FEFER",
+    date:"DYOR V2 launchpad",
+    sortDate:"2026-08-14",
+    stats:[["Curve wallets","2,073"],["Peak","$15,696"],["Peak mult","1,763×"]]
   }
 ];
 
@@ -66,7 +81,7 @@ const grid=document.getElementById("grid");
 if(!PAGES.length){
   document.getElementById("empty").style.display="";
 }else{
-  PAGES.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(p=>{
+  PAGES.slice().sort((a,b)=>new Date(b.sortDate||b.date)-new Date(a.sortDate||a.date)).forEach(p=>{
     const a=document.createElement("a");
     a.className="pcard"; a.href="/pages/"+p.slug+"/";
     a.innerHTML=`

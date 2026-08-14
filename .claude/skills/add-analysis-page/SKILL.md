@@ -62,9 +62,18 @@ beyond maybe a filename or a quick confirmation. Handle everything else.
 
 5. **Add it to the homepage.** Edit the `PAGES` array in `index.html` (root):
    add one object with `slug`, `title`, `tagline`, `desc`, `chain`, `ticker`,
-   `date`, and 2-3 `stats` pairs pulled from the page's own header `.meta`
-   stats (e.g. wallet count, fill count, net PnL). Keep the tone/format
-   consistent with the existing entry.
+   `date`, `sortDate`, and 2-3 `stats` pairs pulled from the page's own header
+   `.meta` stats (e.g. wallet count, fill count, net PnL). Keep the
+   tone/format consistent with existing entries.
+   - `date` is *displayed text* on the card — use the page's actual stated
+     deploy date if it has one (like tempo-tcat's "2026-08-06"). If the source
+     file doesn't state a calendar date anywhere (like stable-fefer, which
+     only gives block numbers), don't invent one — use a short honest label
+     instead, e.g. the launchpad/protocol name from the page's own eyebrow.
+   - `sortDate` is an ISO date used only for homepage ordering, never shown.
+     Use the real deploy date if known; otherwise use today's date (that's a
+     true fact — it's when the page was published) rather than leaving it to
+     fall back on a non-date `date` string, which would break the sort.
 
 6. **Sanity check.** Open the new file mentally (or with a quick grep) to
    confirm there's no leftover inline `<style>` duplicate of theme.css, no
